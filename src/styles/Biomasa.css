@@ -1,0 +1,209 @@
+/* Estilos base */
+.biomasa-container {
+    background-color: #f5f9f5;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.biomasa-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.biomasa-title {
+    color: #2e7d32;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.biomasa-subtitle {
+    color: #689f38;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.biomasa-icon-container {
+    display: inline-flex;
+    padding: 1rem;
+    background-color: #4caf50;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.biomasa-icon {
+    color: white;
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+/* Formulario */
+.biomasa-form {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+.section-title {
+    color: #2e7d32;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e8f5e9;
+}
+
+/* Campos del formulario */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #33691e;
+    font-weight: 500;
+}
+
+.instruction-text {
+    font-weight: normal;
+    color: #689f38;
+    font-size: 0.9em;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8fbf8;
+}
+
+.form-input:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+    outline: none;
+    background-color: white;
+}
+
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Mapa */
+.map-container {
+    width: 100%;
+    height: 350px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.map-info {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f1f8e9;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #33691e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reset-button {
+    background-color: #ef5350;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Botón de enviar */
+.submit-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.submit-button:hover {
+    background: linear-gradient(135deg, #3d8b40 0%, #1b5e20 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.submit-icon {
+    margin-right: 0.5rem;
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+/* Mensaje final */
+.footer-message {
+    text-align: center;
+    margin-top: 2rem;
+    color: #689f38;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .biomasa-title {
+        font-size: 1.8rem;
+    }
+
+    .biomasa-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .biomasa-form {
+        padding: 1.5rem;
+    }
+
+    .map-container {
+        height: 300px;
+    }
+
+    .map-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .biomasa-container {
+        padding: 1.5rem 0.5rem;
+    }
+
+    .map-container {
+        height: 250px;
+    }
+}

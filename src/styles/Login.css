@@ -1,0 +1,87 @@
+/* Login.styles */
+
+/* Contenedor principal */
+.login-container {
+    background-color: #f0f0f0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Barra superior */
+.top-bar {
+    background-color: #2c3e50;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    color: white;
+}
+
+/* Caja del formulario */
+.login-box {
+    background-color: #bfbfbf;
+    width: 320px;
+    margin: auto; /* Centra vertical y horizontalmente */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
+    font-weight: bold;
+}
+
+input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    align-self: flex-end;
+    padding: 8px 12px;
+    background-color: #888;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #666;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+.login-box form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+    width: 100%;
+}
+
+.login-box button {
+    width: 150px; /* Ancho consistente para ambos botones */
+    padding: 10px;
+    margin: 5px 0;
+}
