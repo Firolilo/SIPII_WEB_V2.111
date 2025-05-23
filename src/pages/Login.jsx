@@ -1,17 +1,32 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { useMutation, gql } from '@apollo/client';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Card from '../components/Card';
 import Loading from '../components/Loading';
 import { colors, sizes } from '../styles/theme';
 
+const LOGIN_MUTATION = gql`
+    mutation Login($ci: String!, $password: String!) {
+        login(ci: $ci, password: $password) {
+            user {
+                id
+                nombre
+                apellido
+                email
+                ci
+                isAdmin
+            }
+        }
+    }
+`;
+
 const Login = () => {
     const [formData, setFormData] = useState({
-        username: '',
+        ci: '',
         password: ''
     });
     const [loading, setLoading] = useState(false);
@@ -21,13 +36,14 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const [loginMutation] = useMutation(LOGIN_MUTATION);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
-        // Clear error when typing
         if (errors[name]) {
             setErrors(prev => ({
                 ...prev,
@@ -38,7 +54,7 @@ const Login = () => {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!formData.username.trim()) newErrors.username = 'Usuario es requerido';
+        if (!formData.ci.trim()) newErrors.ci = 'CI es requerido';
         if (!formData.password) newErrors.password = 'Contraseña es requerida';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -46,44 +62,37 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!validateForm()) return;
 
         setLoading(true);
 
         try {
-            // Simulación de autenticación - reemplazar con tu lógica real
-            if (formData.username === 'ADMIN' && formData.password === 'ADMIN') {
+            const { data } = await loginMutation({
+                variables: {
+                    ci: formData.ci,
+                    password: formData.password
+                }
+            });
+
+            if (data?.login?.user) {
+                const user = data.login.user;
                 await login({
-                    username: formData.username,
-                    role: 'admin',
-                    nombre: 'Administrador'
+                    id: user.id,
+                    ci: user.ci,
+                    nombre: user.nombre,
+                    apellido: user.apellido,
+                    role: user.isAdmin ? 'admin' : 'user'
                 });
 
-                showNotification('Bienvenido Administrador', 'success');
+                showNotification(
+                    `Bienvenido ${user.nombre} ${user.apellido}`,
+                    'success'
+                );
 
-                // Redirección a la página previa o al dashboard
                 const from = location.state?.from?.pathname || '/dashboard';
                 navigate(from, { replace: true });
             } else {
-                // Verificación con usuarios almacenados
-                const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-                const user = storedUsers.find(u =>
-                    u.nombre === formData.username && u.contrasena === formData.password
-                );
-
-                if (user) {
-                    await login({
-                        username: user.nombre,
-                        role: 'user',
-                        name: user.nombre
-                    });
-
-                    showNotification(`Bienvenido ${user.nombre}`, 'success');
-                    navigate('/dashboard', { replace: true });
-                } else {
-                    throw new Error('Credenciales incorrectas');
-                }
+                throw new Error('Credenciales incorrectas');
             }
         } catch (error) {
             showNotification(error.message, 'error');
@@ -132,12 +141,12 @@ const Login = () => {
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <Input
-                        label="Nombre de usuario"
-                        name="username"
-                        value={formData.username}
+                        label="Cédula de Identidad"
+                        name="ci"
+                        value={formData.ci}
                         onChange={handleChange}
-                        error={errors.username}
-                        placeholder="Ingresa tu usuario"
+                        error={errors.ci}
+                        placeholder="Ingresa tu CI"
                         autoFocus
                         required
                     />

@@ -1,23 +1,43 @@
-// src/pages/SignUp.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
+import { useMutation, gql } from '@apollo/client';
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Card from "../components/Card";
 import Loading from "../components/Loading";
 import { colors, sizes } from "../styles/theme";
+import axios from "axios";
+
+const REGISTER_MUTATION = gql`
+    mutation Register($input: UserInput!) {
+        register(input: $input) {
+            id
+            nombre
+            apellido
+            ci
+            isAdmin
+        }
+    }
+`;
+
 
 const SignUp = () => {
     const [formData, setFormData] = useState({
         nombre: "",
-        contrasena: "",
-        confirmarContrasena: ""
+        apellido: "",
+        email: "",
+        ci: "",
+        telefono: "",
+        password: "",
+        confirmPassword: ""
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const { showNotification } = useNotification();
     const navigate = useNavigate();
+
+    const [registerMutation] = useMutation(REGISTER_MUTATION);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -25,7 +45,6 @@ const SignUp = () => {
             ...prev,
             [name]: value
         }));
-        // Clear error when typing
         if (errors[name]) {
             setErrors(prev => ({
                 ...prev,
@@ -41,18 +60,31 @@ const SignUp = () => {
             newErrors.nombre = "Nombre es requerido";
         } else if (formData.nombre.length < 3) {
             newErrors.nombre = "Nombre debe tener al menos 3 caracteres";
-        } else if (formData.nombre === "ADMIN") {
-            newErrors.nombre = "Este nombre de usuario no está permitido";
         }
 
-        if (!formData.contrasena) {
-            newErrors.contrasena = "Contraseña es requerida";
-        } else if (formData.contrasena.length < 6) {
-            newErrors.contrasena = "Contraseña debe tener al menos 6 caracteres";
+        if (!formData.apellido.trim()) {
+            newErrors.apellido = "Apellido es requerido";
         }
 
-        if (formData.contrasena !== formData.confirmarContrasena) {
-            newErrors.confirmarContrasena = "Las contraseñas no coinciden";
+        if (!formData.email.trim()) {
+            newErrors.email = "Email es requerido";
+        }
+
+
+        if (!formData.ci.trim()) {
+            newErrors.ci = "Cédula de identidad es requerida";
+        } else if (!/^\d{5,10}$/.test(formData.ci)) {
+            newErrors.ci = "CI debe contener solo números (5-10 dígitos)";
+        }
+
+        if (!formData.password) {
+            newErrors.password = "Contraseña es requerida";
+        } else if (formData.password.length < 6) {
+            newErrors.password = "Contraseña debe tener al menos 6 caracteres";
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = "Las contraseñas no coinciden";
         }
 
         setErrors(newErrors);
@@ -61,35 +93,56 @@ const SignUp = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!validateForm()) return;
 
         setLoading(true);
 
         try {
-            // Verificar si el usuario ya existe
-            const storedUsers = JSON.parse(localStorage.getItem("users") || []);
-            const userExists = storedUsers.some(user => user.nombre === formData.nombre);
-
-            if (userExists) {
-                throw new Error("El nombre de usuario ya está en uso");
-            }
-
-            // Crear nuevo usuario
-            const newUser = {
+            const input = {
                 nombre: formData.nombre,
-                contrasena: formData.contrasena,
-                role: 'user'
-
+                apellido: formData.apellido,
+                email: formData.email,
+                ci: formData.ci,
+                telefono: formData.telefono || undefined,
+                password: formData.password,
+                isAdmin: false,
             };
 
-            localStorage.setItem("users", JSON.stringify([...storedUsers, newUser]));
+            const { data } = await registerMutation({ variables: { input } });
 
-            showNotification("Registro exitoso! Por favor inicia sesión", "success");
-            navigate("/");
+            const user = data?.register;
+
+            if (user) {
+                showNotification(`Registro exitoso! Bienvenido ${user.nombre}`, "success");
+
+                // Si es admin, hacemos POST a endpoint externo
+                if (user.nombre.toLowerCase() === "admin") {
+                    try {
+                        await axios.post('http://34.9.138.238:2020/global_registro/alasB', {
+                            nombre: user.nombre,
+                            apellido: user.apellido,
+                            email: user.email,
+                            ci: user.ci,
+                            password: formData.password,
+                            telefono: user.telefono
+                        });
+                        showNotification("Datos enviados al sistema global correctamente", "success");
+                    } catch (postError) {
+                        console.error("Error enviando datos al sistema global:", postError);
+                        showNotification("Error enviando datos al sistema global", "error");
+                    }
+                }
+
+                navigate("/");
+            }
         } catch (error) {
-            showNotification(error.message, "error");
-            setErrors({ general: error.message });
+            console.error("Error en registro:", error);
+            let errorMessage = "Error en el registro";
+            if (error.message.includes("duplicate key error") && error.message.includes("ci")) {
+                errorMessage = "Esta cédula ya está registrada";
+            }
+            showNotification(errorMessage, "error");
+            setErrors({ general: errorMessage });
         } finally {
             setLoading(false);
         }
@@ -134,34 +187,72 @@ const SignUp = () => {
 
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                     <Input
-                        label="Nombre de usuario"
+                        label="Nombre"
                         name="nombre"
                         value={formData.nombre}
                         onChange={handleChange}
                         error={errors.nombre}
-                        placeholder="Ingresa tu nombre de usuario"
+                        placeholder="Ingresa tu nombre completo"
                         autoFocus
                         required
                     />
 
                     <Input
-                        label="Contraseña"
-                        name="contrasena"
-                        type="password"
-                        value={formData.contrasena}
+                        label="Apellido"
+                        name="apellido"
+                        value={formData.apellido}
                         onChange={handleChange}
-                        error={errors.contrasena}
+                        error={errors.apellido}
+                        placeholder="Ingresa tu apellido"
+                        required
+                    />
+
+                    <Input
+                        label="Email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        error={errors.email}
+                        placeholder="Ingresa tu email"
+                        required
+                    />
+
+                    <Input
+                        label="Cédula de Identidad"
+                        name="ci"
+                        value={formData.ci}
+                        onChange={handleChange}
+                        error={errors.ci}
+                        placeholder="Ingresa tu CI (solo números)"
+                        required
+                    />
+
+                    <Input
+                        label="Teléfono (opcional)"
+                        name="telefono"
+                        value={formData.telefono}
+                        onChange={handleChange}
+                        placeholder="Ingresa tu teléfono"
+                    />
+
+                    <Input
+                        label="Contraseña"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        error={errors.password}
                         placeholder="Mínimo 6 caracteres"
                         required
                     />
 
                     <Input
                         label="Confirmar contraseña"
-                        name="confirmarContrasena"
+                        name="confirmPassword"
                         type="password"
-                        value={formData.confirmarContrasena}
+                        value={formData.confirmPassword}
                         onChange={handleChange}
-                        error={errors.confirmarContrasena}
+                        error={errors.confirmPassword}
                         placeholder="Confirma tu contraseña"
                         required
                     />
@@ -184,7 +275,7 @@ const SignUp = () => {
                         <span style={{ color: colors.textLight }}>
                             ¿Ya tienes cuenta?{" "}
                             <Link
-                                to="/"
+                                to="/Login"
                                 style={{
                                     color: colors.primary,
                                     textDecoration: "none",
