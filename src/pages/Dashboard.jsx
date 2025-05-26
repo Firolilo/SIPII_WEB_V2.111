@@ -16,6 +16,7 @@ import { getWeatherData } from '../services/weatherAPI';
 import { getFireData } from '../services/firmsAPI';
 import BiomasaList from "../components/BiomasaList";
 import FireList from '../components/FireList';
+import ChangePasswordModal from "../components/ChangePasswordModal";
 
 
 const iconoBaja = new L.Icon({
@@ -55,6 +56,19 @@ const Dashboard = () => {
     const location = useLocation();
     const { user, logout } = useAuth();
     const { showNotification } = useNotification();
+
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+    useEffect(() => {
+        if (user?.state === 'Pendiente') {
+            setShowPasswordModal(true);
+        }
+    }, [user]);
+
+
+    const handlePasswordUpdateSuccess = () => {
+        setShowPasswordModal(false);
+    };
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -181,6 +195,14 @@ const Dashboard = () => {
             <NavBar user={user} onLogout={logout} />
 
             <main style={{ flex: 1, padding: '20px', maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
+
+                {console.log("Modal visible:", showPasswordModal)}
+                <ChangePasswordModal
+                    isOpen={showPasswordModal}
+                    onSuccess={handlePasswordUpdateSuccess}
+                />
+
+
                 <div>
                     {/* Contenedor del Mapa */}
                     <div style={{ height: '500px', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', position: 'relative' }}>

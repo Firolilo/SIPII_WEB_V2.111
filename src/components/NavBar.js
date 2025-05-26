@@ -52,7 +52,7 @@ const NavBar = ({ user, onLogout }) => {
                     <Link to="/secondPage" style={linkStyle('/secondPage')}>Datos</Link>
                     <Link to="/newPage" style={linkStyle('/newPage')}>Simulación</Link>
                     <Link to="/reporte" style={linkStyle('/reporte')}>Reporte</Link>
-                    {user?.nombre === "Administrador" && (
+                    {user?.role === 'admin' && (
                         <Link to="/users" style={linkStyle('/users')}>Usuarios</Link>
                     )}
                 </div>

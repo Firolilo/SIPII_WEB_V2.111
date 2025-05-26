@@ -7,7 +7,6 @@ import Input from "../components/Input";
 import Card from "../components/Card";
 import Loading from "../components/Loading";
 import { colors, sizes } from "../styles/theme";
-import axios from "axios";
 
 const REGISTER_MUTATION = gql`
     mutation Register($input: UserInput!) {
@@ -17,10 +16,10 @@ const REGISTER_MUTATION = gql`
             apellido
             ci
             isAdmin
+            state
         }
     }
 `;
-
 
 const SignUp = () => {
     const [formData, setFormData] = useState({
@@ -70,7 +69,6 @@ const SignUp = () => {
             newErrors.email = "Email es requerido";
         }
 
-
         if (!formData.ci.trim()) {
             newErrors.ci = "Cédula de identidad es requerida";
         } else if (!/^\d{5,10}$/.test(formData.ci)) {
@@ -99,50 +97,43 @@ const SignUp = () => {
 
         try {
             const input = {
-                nombre: formData.nombre,
-                apellido: formData.apellido,
-                email: formData.email,
-                ci: formData.ci,
-                telefono: formData.telefono || undefined,
+                nombre: formData.nombre.trim(),
+                apellido: formData.apellido.trim(),
+                email: formData.email.trim().toLowerCase(),
+                ci: formData.ci.trim(),
+                telefono: formData.telefono ? formData.telefono.trim() : undefined,
                 password: formData.password,
-                isAdmin: false,
+                isAdmin: false // Default to false unless it's a special admin registration
             };
 
-            const { data } = await registerMutation({ variables: { input } });
+            // Debug what you're sending
+            console.log("Sending registration data:", input);
 
-            const user = data?.register;
+            const { data } = await registerMutation({
+                variables: { input },
+                errorPolicy: 'all' // This will help get more detailed errors
+            });
 
-            if (user) {
-                showNotification(`Registro exitoso! Bienvenido ${user.nombre}`, "success");
-
-                // Si es admin, hacemos POST a endpoint externo
-                if (user.nombre.toLowerCase() === "admin") {
-                    try {
-                        await axios.post('http://34.9.138.238:2020/global_registro/alasB', {
-                            nombre: user.nombre,
-                            apellido: user.apellido,
-                            email: user.email,
-                            ci: user.ci,
-                            password: formData.password,
-                            telefono: user.telefono
-                        });
-                        showNotification("Datos enviados al sistema global correctamente", "success");
-                    } catch (postError) {
-                        console.error("Error enviando datos al sistema global:", postError);
-                        showNotification("Error enviando datos al sistema global", "error");
-                    }
-                }
-
-                navigate("/");
+            if (data?.register) {
+                showNotification(`Registro exitoso! Bienvenido ${data.register.nombre}`, "success");
+                navigate("/login");
             }
         } catch (error) {
-            console.error("Error en registro:", error);
+            console.error("Full error details:", JSON.stringify(error, null, 2));
+
             let errorMessage = "Error en el registro";
-            if (error.message.includes("duplicate key error") && error.message.includes("ci")) {
-                errorMessage = "Esta cédula ya está registrada";
+            if (error.networkError?.result?.errors) {
+                // Handle GraphQL errors
+                errorMessage = error.networkError.result.errors[0].message;
+            } else if (error.message.includes("duplicate key error")) {
+                if (error.message.includes("ci")) {
+                    errorMessage = "Esta cédula ya está registrada";
+                } else if (error.message.includes("email")) {
+                    errorMessage = "Este email ya está registrado";
+                }
             }
+
             showNotification(errorMessage, "error");
-            setErrors({ general: errorMessage });
         } finally {
             setLoading(false);
         }

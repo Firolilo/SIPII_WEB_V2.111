@@ -141,6 +141,8 @@ const Simulacion = () => {
             initialFires: item.initialFires
         })) || [];
 
+    console.log(formattedHistory);
+
     useEffect(() => {
         const tempFactor = Math.min(temperature / 40, 1);
         const humFactor = 1 - (humidity / 100);
@@ -194,7 +196,7 @@ const Simulacion = () => {
                 showNotification("Debes añadir al menos un foco de incendio", "error");
                 return;
             }
-            if (!user?.name) {
+            if (!user?.nombre) {
                 showNotification("Error: No se pudo identificar al usuario", "error");
                 return;
             }
@@ -208,7 +210,7 @@ const Simulacion = () => {
 
                 duration: timeElapsed,
                 volunteers: requiredVolunteers,
-                volunteerName: user.name,
+                volunteerName: user.nombre + " " + user.apellido,
                 coordinates: {
                     lat: typeof mapCenter.lat === 'function' ? mapCenter.lat() : mapCenter.lat,
                     lng: typeof mapCenter.lng === 'function' ? mapCenter.lng() : mapCenter.lng

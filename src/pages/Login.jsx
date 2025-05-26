@@ -19,11 +19,11 @@ const LOGIN_MUTATION = gql`
                 email
                 ci
                 isAdmin
+                state
             }
         }
     }
 `;
-
 const Login = () => {
     const [formData, setFormData] = useState({
         ci: '',
@@ -76,12 +76,15 @@ const Login = () => {
 
             if (data?.login?.user) {
                 const user = data.login.user;
+
                 await login({
                     id: user.id,
                     ci: user.ci,
                     nombre: user.nombre,
                     apellido: user.apellido,
-                    role: user.isAdmin ? 'admin' : 'user'
+                    email: user.email,
+                    isAdmin: user.isAdmin,
+                    state: user.state
                 });
 
                 showNotification(
