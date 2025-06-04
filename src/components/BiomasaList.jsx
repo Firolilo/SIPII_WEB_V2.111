@@ -1,7 +1,7 @@
 import React, {useState, useMemo, useEffect} from 'react';
 import { colors } from '../styles/theme';
 
-const BiomasaList = ({ biomasas, onDelete, onFiltered }) => {
+const BiomasaList = ({ biomasas, onDelete, onFiltered, user }) => {
     const [filter, setFilter] = useState('');
     const [filterBy, setFilterBy] = useState('tipoBiomasa');
     const [selectedFilterValue, setSelectedFilterValue] = useState('');
@@ -47,7 +47,7 @@ const BiomasaList = ({ biomasas, onDelete, onFiltered }) => {
             padding: '15px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             height: '100%',
-            width: '100%',
+            width: '92%',
             maxHeight: 'calc(100vh - 200px)',
             overflow: 'hidden',
             display: 'flex',
@@ -272,23 +272,25 @@ const BiomasaList = ({ biomasas, onDelete, onFiltered }) => {
                                         </span>
                                     </div>
 
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete(biomasa.id);
-                                        }}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: colors.danger,
-                                            cursor: 'pointer',
-                                            fontSize: '0.8rem',
-                                            padding: '2px 6px',
-                                            whiteSpace: 'nowrap'
-                                        }}
-                                    >
-                                        Eliminar
-                                    </button>
+                                    {user?.role === 'admin' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDelete(biomasa.id);
+                                            }}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: colors.danger,
+                                                cursor: 'pointer',
+                                                fontSize: '0.8rem',
+                                                padding: '2px 6px',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            Eliminar
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

@@ -1127,27 +1127,46 @@ const Simulacion = () => {
                         <div style={{
                             display: 'flex',
                             gap: '1rem',
-                            justifyContent: 'space-between',
-                            marginTop: '1.5rem'
+                            justifyContent: 'center', // Cambiado a 'center' para mejor distribución
+                            marginTop: '1.5rem',
+                            flexWrap: 'wrap' // Permite que los botones se ajusten en pantallas pequeñas
                         }}>
                             <Button
                                 variant="outline"
                                 onClick={() => setShowSaveModal(false)}
+                                style={{ margin: '0.25rem' }} // Margen consistente
                             >
                                 Cancelar
                             </Button>
-                            <div style={{display: 'flex', gap: '1rem'}}>
-                                <Button onClick={handleSave}>
-                                    Guardar
-                                </Button>
-                                <Button onClick={handleDownload}>Descargar</Button>
 
+                            {/* Botones derechos con flexbox */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '1rem',
+                                flexWrap: 'wrap', // Ajuste para pantallas pequeñas
+                                justifyContent: 'center' // Centrado cuando hay pocos botones
+                            }}>
+                                {user?.role === 'admin' && (
+                                    <Button
+                                        onClick={handleSave}
+                                        style={{ margin: '0.25rem' }}
+                                    >
+                                        Guardar
+                                    </Button>
+                                )}
+                                <Button
+                                    onClick={handleDownload}
+                                    style={{ margin: '0.25rem' }}
+                                >
+                                    Descargar
+                                </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => {
                                         handleRepeat();
                                         setShowSaveModal(false);
                                     }}
+                                    style={{ margin: '0.25rem' }}
                                 >
                                     Repetir
                                 </Button>

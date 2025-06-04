@@ -185,6 +185,11 @@ const FooterMessage = styled.div`
   color: #555;
 `;
 
+const DateInput = styled(FormInput).attrs({ type: 'date' })`
+  width: 98%;
+  display: block;
+`;
+
 // Configuración de íconos
 const biomassIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
@@ -298,12 +303,13 @@ export default function ReporteBiomasa() {
 
                     <FormGroup>
                         <FormLabel htmlFor="fecha">Fecha de observación</FormLabel>
-                        <FormInput
+                        <DateInput
                             type="date"
                             id="fecha"
                             name="fecha"
                             value={formData.fecha}
                             onChange={handleChange}
+                            max={new Date().toISOString().split('T')[0]}
                             required
                         />
                     </FormGroup>
