@@ -13,7 +13,8 @@ import StatBox from "../components/StatBox";
 import RangeInput from "../components/RangeInput";
 import { colors, sizes } from "../styles/theme";
 import {gql, useMutation, useQuery} from "@apollo/client";
-
+import { useFireRiskCalculator } from "../hooks/useFireRiskCalculator";
+import { useVolunteersEstimator } from "../hooks/useVolunteersEstimator";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 const UPDATE_NAME = gql`
