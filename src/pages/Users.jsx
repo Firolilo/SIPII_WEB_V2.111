@@ -10,7 +10,7 @@ import Loading from "../components/Loading";
 import { colors, sizes } from "../styles/theme";
 import styled from 'styled-components';
 
-// Estilos para el fondo blureado
+// Estilos para el fondo blureado (sin cambios)
 const backdropStyles = {
     backgroundImage: "url('https://i.imgur.com/DYET2fG_d.webp?maxwidth=760&fidelity=grand')",
     backgroundSize: "cover",
@@ -44,78 +44,97 @@ const containerStyles = {
     backgroundColor: "transparent"
 };
 
-// Componentes estilizados
+// Componentes estilizados (agregamos SearchContainer)
 const MainContainer = styled.main`
-  flex: 1;
-  padding: 20px;
-  max-width: ${sizes.maxWidth};
-  width: 100%;
-  margin: 20px auto;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
+    flex: 1;
+    padding: 20px;
+    max-width: ${sizes.maxWidth};
+    width: 100%;
+    margin: 20px auto;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
 `;
 
 const Title = styled.h1`
-  color: ${colors.primary};
-  text-align: center;
-  margin-bottom: 30px;
-  border-bottom: 3px solid ${colors.secondary};
-  padding-bottom: 10px;
+    color: ${colors.primary};
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 3px solid ${colors.secondary};
+    padding-bottom: 10px;
+`;
+
+const SearchContainer = styled.div`
+    display: flex;
+    margin-bottom: 20px;
+    gap: 10px;
+
+    input {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid ${colors.border};
+        border-radius: 4px;
+        font-size: 1rem;
+
+        &:focus {
+            outline: none;
+            border-color: ${colors.primary};
+        }
+    }
 `;
 
 const ColumnsContainer = styled.div`
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
 `;
 
 const Column = styled.div`
-  flex: 1;
-  min-width: 280px;
-  background-color: rgba(255, 255, 255, 0.7);
-  padding: 15px;
-  border-radius: 8px;
+    flex: 1;
+    min-width: 280px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 15px;
+    border-radius: 8px;
 `;
 
 const ColumnTitle = styled.h2`
-  margin-top: 0;
-  padding-bottom: 10px;
-  border-bottom: 2px solid ${props => props.color};
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid ${props => props.color};
 `;
 
 const UserList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
 `;
 
 const UserCard = styled(Card)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background-color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.85);
 `;
 
 const UserInfo = styled.div`
-  flex: 1;
+    flex: 1;
 `;
 
 const UserName = styled.p`
-  font-weight: bold;
-  color: ${colors.primary};
-  margin: 0;
+    font-weight: bold;
+    color: ${colors.primary};
+    margin: 0;
 `;
 
 const UserDetail = styled.p`
-  font-size: 0.8rem;
-  color: ${colors.textLight};
-  margin: 5px 0 0;
+    font-size: 0.8rem;
+    color: ${colors.textLight};
+    margin: 5px 0 0;
 `;
 
 const ButtonContainer = styled.div`
@@ -124,7 +143,7 @@ const ButtonContainer = styled.div`
   margin-top: 40px;
 `;
 
-// Consulta GraphQL para obtener usuarios
+// Consultas GraphQL (sin cambios)
 const GET_USERS = gql`
     query GetUsers {
         users {
@@ -140,7 +159,6 @@ const GET_USERS = gql`
     }
 `;
 
-// Mutación GraphQL para eliminar usuario
 const DELETE_USER = gql`
     mutation DeleteUser($id: ID!) {
         deleteUser(id: $id) {
@@ -166,6 +184,7 @@ const Users = () => {
     const navigate = useNavigate();
     const [deleteLoading, setDeleteLoading] = useState(null);
     const [activatingId, setActivatingId] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const { loading, error, data, refetch } = useQuery(GET_USERS);
     const [deleteUser] = useMutation(DELETE_USER);
@@ -213,13 +232,26 @@ const Users = () => {
         }
     };
 
+    const filterUsers = (users, searchTerm) => {
+        if (!searchTerm) return users;
+
+        const term = searchTerm.toLowerCase();
+        return users.filter(u =>
+            u.nombre.toLowerCase().includes(term) ||
+            u.apellido.toLowerCase().includes(term) ||
+            u.ci.toLowerCase().includes(term)
+        );
+    };
+
     if (loading) return <Loading />;
 
     const usersList = data?.users || [];
-    const usersActivos = usersList.filter(u => u.state === "Activo" && !u.isAdmin);
-    const usersPendientes = usersList.filter(u => u.state === "Pendiente" && !u.isAdmin);
-    const usersInactivos = usersList.filter(u => u.state === "Inactivo" && !u.isAdmin);
-    const usersAdmin = usersList.filter(u => u.isAdmin);
+    const filteredUsers = filterUsers(usersList, searchTerm);
+
+    const usersActivos = filteredUsers.filter(u => u.state === "Activo" && !u.isAdmin);
+    const usersPendientes = filteredUsers.filter(u => u.state === "Pendiente" && !u.isAdmin);
+    const usersInactivos = filteredUsers.filter(u => u.state === "Inactivo" && !u.isAdmin);
+    const usersAdmin = filteredUsers.filter(u => u.isAdmin);
 
     const renderUserCard = (userItem, showDelete = false, showActivate = false) => (
         <UserCard key={userItem.id}>
@@ -264,36 +296,65 @@ const Users = () => {
             <MainContainer>
                 <Title>Gestión de Usuarios</Title>
 
+                {/* Barra de búsqueda */}
+                <SearchContainer>
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre, apellido o CI..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button
+                        variant="secondary"
+                        onClick={() => setSearchTerm("")}
+                        disabled={!searchTerm}
+                    >
+                        Limpiar
+                    </Button>
+                </SearchContainer>
+
                 <ColumnsContainer>
                     {/* Columna: Activos */}
                     <Column>
-                        <ColumnTitle color={colors.success}>🟢 Activos</ColumnTitle>
+                        <ColumnTitle color={colors.success}>🟢 Activos ({usersActivos.length})</ColumnTitle>
                         <UserList>
-                            {usersActivos.length ? usersActivos.map(u => renderUserCard(u, true)) : <p>Sin usuarios activos</p>}
+                            {usersActivos.length ?
+                                usersActivos.map(u => renderUserCard(u, true)) :
+                                <p>No hay usuarios activos{searchTerm && ` que coincidan con "${searchTerm}"`}</p>
+                            }
                         </UserList>
                     </Column>
 
                     {/* Columna: Pendientes */}
                     <Column>
-                        <ColumnTitle color={colors.warning}>🟡 Pendientes</ColumnTitle>
+                        <ColumnTitle color={colors.warning}>🟡 Pendientes ({usersPendientes.length})</ColumnTitle>
                         <UserList>
-                            {usersPendientes.length ? usersPendientes.map(u => renderUserCard(u, true)) : <p>Sin usuarios pendientes</p>}
+                            {usersPendientes.length ?
+                                usersPendientes.map(u => renderUserCard(u, true)) :
+                                <p>No hay usuarios pendientes{searchTerm && ` que coincidan con "${searchTerm}"`}</p>
+                            }
                         </UserList>
                     </Column>
 
                     {/* Columna: Inactivos */}
                     <Column>
-                        <ColumnTitle color={colors.danger}>🔴 Inactivos</ColumnTitle>
+                        <ColumnTitle color={colors.danger}>🔴 Inactivos ({usersInactivos.length})</ColumnTitle>
                         <UserList>
-                            {usersInactivos.length ? usersInactivos.map(u => renderUserCard(u, false, true)) : <p>Sin usuarios inactivos</p>}
+                            {usersInactivos.length ?
+                                usersInactivos.map(u => renderUserCard(u, false, true)) :
+                                <p>No hay usuarios inactivos{searchTerm && ` que coincidan con "${searchTerm}"`}</p>
+                            }
                         </UserList>
                     </Column>
 
                     {/* Columna: Admins */}
                     <Column>
-                        <ColumnTitle color={colors.info}>🛡️ Admins</ColumnTitle>
+                        <ColumnTitle color={colors.info}>🛡️ Admins ({usersAdmin.length})</ColumnTitle>
                         <UserList>
-                            {usersAdmin.length ? usersAdmin.map(u => renderUserCard(u)) : <p>Sin admins</p>}
+                            {usersAdmin.length ?
+                                usersAdmin.map(u => renderUserCard(u)) :
+                                <p>No hay administradores{searchTerm && ` que coincidan con "${searchTerm}"`}</p>
+                            }
                         </UserList>
                     </Column>
                 </ColumnsContainer>

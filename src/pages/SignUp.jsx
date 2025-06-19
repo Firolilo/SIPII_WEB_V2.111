@@ -77,8 +77,10 @@ const SignUp = () => {
 
         if (!formData.password) {
             newErrors.password = "Contraseña es requerida";
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Contraseña debe tener al menos 6 caracteres";
+        } else if (formData.password.length < 12) {
+            newErrors.password = "Contraseña debe tener al menos 12 caracteres";
+        } else if (formData.password.length > 64) {
+            newErrors.password = "Contraseña no debe exceder los 64 caracteres";
         }
 
         if (formData.password !== formData.confirmPassword) {

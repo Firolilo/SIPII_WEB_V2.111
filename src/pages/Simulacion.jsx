@@ -13,8 +13,7 @@ import StatBox from "../components/StatBox";
 import RangeInput from "../components/RangeInput";
 import { colors, sizes } from "../styles/theme";
 import {gql, useMutation, useQuery} from "@apollo/client";
-import { useFireRiskCalculator } from "../hooks/useFireRiskCalculator";
-import { useVolunteersEstimator } from "../hooks/useVolunteersEstimator";
+import { generarInformePDF } from "../components/generarInformePDF";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 const UPDATE_NAME = gql`
@@ -170,11 +169,11 @@ const Simulacion = () => {
         ?.map(item => ({
             id: item.id,
             fecha: new Date(item.timestamp).toLocaleDateString(),
-            nombre: item.name || item.location,      // ← muestra location si name vacío
+            nombre: item.name || item.location,
             tieneNombre: !!item.name,
             duracion: item.duration ? `${item.duration}h` : '—',
             duration: item.duration || 20,
-            focos: item.initialFires?.length ?? 0,       // nuevo
+            focos: item.initialFires?.length ?? 0,
             parameters: item.parameters,
             initialFires: item.initialFires,
             volunteerName: item.volunteerName
@@ -1160,6 +1159,19 @@ const Simulacion = () => {
                                     style={{ margin: '0.25rem' }}
                                 >
                                     Descargar
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        const simData = buildSimulationData();
+                                        if (simData) generarInformePDF(simData);
+                                    }}
+                                    style={{
+                                        backgroundColor: '#1976d2',
+                                        color: 'white',
+                                        padding: '10px 20px'
+                                    }}
+                                >
+                                    PDF
                                 </Button>
                                 <Button
                                     variant="outline"
