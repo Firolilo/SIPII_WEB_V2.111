@@ -1165,11 +1165,7 @@ const Simulacion = () => {
                                         const simData = buildSimulationData();
                                         if (simData) generarInformePDF(simData);
                                     }}
-                                    style={{
-                                        backgroundColor: '#1976d2',
-                                        color: 'white',
-                                        padding: '10px 20px'
-                                    }}
+                                    style={{ margin: '0.25rem' }}
                                 >
                                     PDF
                                 </Button>
