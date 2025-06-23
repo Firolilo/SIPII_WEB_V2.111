@@ -1,167 +1,5 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
-export const downloadSimulationAsExcel = (simulationData) => {
-    if (!simulationData || typeof simulationData !== 'object') {
-        console.error('Datos de simulación no válidos');
-        return;
-    }
-
-    const worksheetData = [
-        ['INFORME DE SIMULACIÓN DE INCENDIOS'],
-        [],
-        ['Información General'],
-        ['Fecha de generación', new Date().toLocaleString('es-ES')],
-        ['Ubicación', simulationData.location || 'No especificado'],
-        ['Responsable', simulationData.volunteerName || 'No especificado'],
-        ['Duración de la simulación (horas)', simulationData.duration || 0],
-        ['Riesgo de incendio calculado (%)', simulationData.fireRisk || 0],
-        ['Voluntarios necesarios', simulationData.volunteers || 0],
-        [],
-        ['Parámetros Ambientales'],
-        ['Temperatura (°C)', simulationData.parameters?.temperature || 0],
-        ['Humedad relativa (%)', simulationData.parameters?.humidity || 0],
-        ['Velocidad del viento (km/h)', simulationData.parameters?.windSpeed || 0],
-        ['Dirección del viento (°)', simulationData.parameters?.windDirection || 0],
-        ['Velocidad de simulación', simulationData.parameters?.simulationSpeed || 'No especificado'],
-        [],
-        ['Evaluación de Riesgo'],
-        ['Riesgo de incendio calculado (%)', simulationData.fireRisk || 0],
-        ['Interpretación', getRiskInterpretation(simulationData.fireRisk || 0)],
-        [],
-        ['Factores Clave'],
-        ['# Focos iniciales', simulationData.initialFires?.length || 0],
-        ['Voluntarios necesarios', simulationData.volunteers || 0],
-        ['Temperatura elevada (>30°C)', (simulationData.parameters?.temperature || 0) > 30 ? 'Sí' : 'No'],
-        ['Humedad baja (<40%)', (simulationData.parameters?.humidity || 0) < 40 ? 'Sí' : 'No'],
-        ['Vientos fuertes (>25 km/h)', (simulationData.parameters?.windSpeed || 0) > 25 ? 'Sí' : 'No'],
-        [],
-        ['Ubicación de los Focos de Incendio'],
-        ['#', 'Latitud', 'Longitud', 'Intensidad'],
-    ];
-
-    (simulationData.initialFires || []).forEach((fire, index) => {
-        worksheetData.push([
-            index + 1,
-            (fire.lat || 0).toFixed(4),
-            (fire.lng || 0).toFixed(4),
-            fire.intensity || 0,
-        ]);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-    const wscols = [
-        { wch: 30 },
-        { wch: 30 },
-        { wch: 30 },
-        { wch: 20 },
-    ];
-    ws['!cols'] = wscols;
-
-    const applyCellStyles = (cell, row, col) => {
-        const baseStyle = {
-            border: {
-                top: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                right: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                bottom: { style: 'thin', color: { rgb: 'D3D3D3' } },
-                left: { style: 'thin', color: { rgb: 'D3D3D3' } },
-            },
-            alignment: {
-                horizontal: col === 0 ? 'left' : 'center',
-                vertical: 'center',
-                wrapText: true,
-            },
-            font: {
-                name: 'Arial',
-                sz: 10,
-                color: { rgb: '000000' },
-            },
-        };
-
-        if (row === 0) {
-            return {
-                ...baseStyle,
-                fill: { patternType: 'solid', fgColor: { rgb: '8B0000' } },
-                font: { name: 'Arial', sz: 16, bold: true, color: { rgb: 'FFFFFF' } },
-                alignment: { horizontal: 'center', vertical: 'center' },
-            };
-        }
-
-        if (worksheetData[row]?.length === 1 && worksheetData[row][0]) {
-            return {
-                ...baseStyle,
-                fill: { patternType: 'solid', fgColor: { rgb: 'CD5C5C' } },
-                font: { name: 'Arial', sz: 12, bold: true, color: { rgb: 'FFFFFF' } },
-                alignment: { horizontal: 'left', vertical: 'center' },
-            };
-        }
-
-        if (row === worksheetData.length - (simulationData.initialFires?.length || 0) - 1) {
-            return {
-                ...baseStyle,
-                fill: { patternType: 'solid', fgColor: { rgb: 'F08080' } },
-                font: { name: 'Arial', sz: 10, bold: true, color: { rgb: 'FFFFFF' } },
-            };
-        }
-
-        if (col === 0 && worksheetData[row]?.[1] !== undefined) {
-            return {
-                ...baseStyle,
-                fill: { patternType: 'solid', fgColor: { rgb: 'FFE4E1' } },
-                font: { name: 'Arial', sz: 10, bold: true },
-            };
-        }
-
-        if (worksheetData[row]?.[1] !== undefined || row >= worksheetData.length - (simulationData.initialFires?.length || 0)) {
-            const isFireData = row >= worksheetData.length - (simulationData.initialFires?.length || 0);
-            return {
-                ...baseStyle,
-                fill: { patternType: 'solid', fgColor: { rgb: isFireData ? 'FFF0F5' : 'FFFFFF' } },
-                font: {
-                    name: 'Arial',
-                    sz: 10,
-                    color: { rgb: isFireData ? '8B0000' : '000000' }
-                },
-            };
-        }
-
-        return baseStyle;
-    };
-
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:D1');
-    for (let row = range.s.r; row <= range.e.r; ++row) {
-        for (let col = range.s.c; col <= range.e.c; ++col) {
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            const cell = ws[cellAddress];
-            if (!cell) continue;
-            cell.s = applyCellStyles(cell, row, col);
-        }
-    }
-
-    const merges = [];
-    if (worksheetData[0]?.length > 0) {
-        merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } });
-    }
-    worksheetData.forEach((row, index) => {
-        if (row.length === 1 && row[0] && index > 0) {
-            merges.push({ s: { r: index, c: 0 }, e: { r: index, c: 3 } });
-        }
-    });
-    if (merges.length > 0) {
-        ws['!merges'] = merges;
-    }
-
-    ws['!rows'] = worksheetData.map((row, index) => ({
-        hpt: index === 0 ? 35 : row.length === 1 && row[0] ? 28 : 22,
-    }));
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Simulación de Incendios');
-
-    XLSX.writeFile(
-        wb,
-        `Simulacion_Incendios_${(simulationData.location || 'Sin_Ubicacion').replace(/\s+/g, '_')}_${new Date(simulationData.timestamp || Date.now()).toISOString().split('T')[0]}.xlsx`
-    );
-};
 
 function getRiskInterpretation(risk) {
     if (risk >= 75) return 'Riesgo MUY ALTO - Acción inmediata requerida';
@@ -169,3 +7,184 @@ function getRiskInterpretation(risk) {
     if (risk >= 25) return 'Riesgo MODERADO - Monitoreo constante';
     return 'Riesgo BAJO - Vigilancia normal';
 }
+
+
+export const downloadSimulationAsExcel = (simulationData) => {
+    if (!simulationData || typeof simulationData !== 'object') {
+        console.error('Datos de simulación no válidos');
+        return;
+    }
+
+
+    const wsData = [
+        // Título
+        ['INFORME DE SIMULACIÓN DE INCENDIOS'],
+        [],
+
+        // Información general
+        ['Información General'],
+        ['Fecha de generación', new Date().toLocaleString('es-ES')],
+        ['Ubicación', simulationData.location || 'No especificado'],
+        ['Responsable', simulationData.volunteerName || 'No especificado'],
+        ['Duración (h)', simulationData.duration || 0],
+        ['Riesgo (%)', simulationData.fireRisk || 0],
+        ['Voluntarios necesarios', simulationData.volunteers || 0],
+        [],
+
+        // Parámetros Ambientales
+        ['Parámetros Ambientales'],
+        ['Temperatura (°C)', simulationData.parameters?.temperature ?? '—'],
+        ['Humedad (%)', simulationData.parameters?.humidity ?? '—'],
+        ['Viento (km/h)', simulationData.parameters?.windSpeed ?? '—'],
+        ['Dirección Viento (°)', simulationData.parameters?.windDirection ?? '—'],
+        ['Velocidad Simulación', simulationData.parameters?.simulationSpeed ?? '—'],
+        [],
+
+        // Evaluación de Riesgo
+        ['Evaluación de Riesgo'],
+        ['Riesgo (%)', simulationData.fireRisk || 0],
+        ['Interpretación', getRiskInterpretation(simulationData.fireRisk || 0)],
+        [],
+
+        // Factores Clave
+        ['Factores Clave'],
+        ['# Focos iniciales', simulationData.initialFires?.length || 0],
+        ['Temperatura >30 °C', (simulationData.parameters?.temperature ?? 0) > 30 ? 'Sí' : 'No'],
+        ['Humedad <40 %', (simulationData.parameters?.humidity ?? 0) < 40 ? 'Sí' : 'No'],
+        ['Viento >25 km/h', (simulationData.parameters?.windSpeed ?? 0) > 25 ? 'Sí' : 'No'],
+        [],
+
+        // Tabla de focos
+        ['Ubicación de los Focos de Incendio'],
+        ['#', 'Latitud', 'Longitud', 'Intensidad'],
+    ];
+
+    (simulationData.initialFires || []).forEach((f, i) => {
+        wsData.push([i + 1, f.lat.toFixed(4), f.lng.toFixed(4), f.intensity]);
+    });
+
+    // Pie de página
+    wsData.push([]);
+    wsData.push(['Generado por el Sistema de Simulación', '', '', new Date().toLocaleString('es-ES')]);
+
+    /* ---------------------------------------------------------------------
+     * Crear hoja y aplicar estilos
+     * -------------------------------------------------------------------*/
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Columnas anchas
+    ws['!cols'] = [
+        { wch: 30 },
+        { wch: 22 },
+        { wch: 22 },
+        { wch: 18 },
+    ];
+
+    // Ayudas para detectar secciones
+    const fireCount = simulationData.initialFires?.length || 0;
+    const fireHeaderRow = wsData.length - fireCount - 3; // fila del encabezado (#, Lat, Lng...)
+    const lastRow = wsData.length - 1;
+
+    // Estilo base para TODAS las celdas (bordes finos típicos de Excel)
+    const base = {
+        border: {
+            top:    { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left:   { style: 'thin', color: { rgb: '000000' } },
+            right:  { style: 'thin', color: { rgb: '000000' } },
+        },
+        font: { name: 'Calibri', sz: 11 },
+        alignment: { vertical: 'center', wrapText: true },
+    };
+
+    // Recorrer todas las celdas del rango existente
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            const cell = ws[cellAddress];
+            if (!cell) continue;
+
+            // Copia del estilo base
+            let style = { ...base };
+
+            /* ---------- Cabecera principal ---------- */
+            if (R === 0) {
+                style = {
+                    ...style,
+                    fill: { patternType: 'solid', fgColor: { rgb: '8B0000' } },
+                    font: { name: 'Calibri', sz: 16, bold: true, color: { rgb: 'FFFFFF' } },
+                    alignment: { ...style.alignment, horizontal: 'center' },
+                };
+            }
+
+            /* ---------- Filas título de sección (una sola celda con texto) ---------- */
+            else if (wsData[R] && wsData[R].length === 1) {
+                style = {
+                    ...style,
+                    fill: { patternType: 'solid', fgColor: { rgb: 'F5B7B7' } },
+                    font: { ...style.font, bold: true },
+                };
+            }
+
+            /* ---------- Encabezado tabla focos ---------- */
+            else if (R === fireHeaderRow) {
+                style = {
+                    ...style,
+                    fill: { patternType: 'solid', fgColor: { rgb: 'CD5C5C' } },
+                    font: { ...style.font, bold: true, color: { rgb: 'FFFFFF' } },
+                    alignment: { ...style.alignment, horizontal: 'center' },
+                };
+            }
+
+            /* ---------- Datos de la tabla de focos (banded rows) ---------- */
+            else if (R > fireHeaderRow && R < lastRow) {
+                const even = (R - fireHeaderRow) % 2 === 0;
+                style = {
+                    ...style,
+                    fill: { patternType: 'solid', fgColor: { rgb: even ? 'FFFFFF' : 'FFF5F5' } },
+                    alignment: { ...style.alignment, horizontal: 'center' },
+                };
+            }
+
+            /* ---------- Pie de página ---------- */
+            else if (R === lastRow) {
+                style = {
+                    ...style,
+                    fill: { patternType: 'solid', fgColor: { rgb: 'D9D9D9' } },
+                    font: { ...style.font, italic: true },
+                    alignment: { ...style.alignment, horizontal: 'center' },
+                };
+            }
+
+            // Aplicar el estilo final a la celda
+            cell.s = style;
+        }
+    }
+
+    /* Unir celdas para títulos y pie */
+    ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // título
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
+        { s: { r: 10, c: 0 }, e: { r: 10, c: 3 } },
+        { s: { r: 17, c: 0 }, e: { r: 17, c: 3 } },
+        { s: { r: 21, c: 0 }, e: { r: 21, c: 3 } },
+        { s: { r: fireHeaderRow - 2, c: 0 }, e: { r: fireHeaderRow - 2, c: 3 } },
+        { s: { r: lastRow, c: 0 }, e: { r: lastRow, c: 3 } },
+    ];
+
+    // Ajustar altura de la fila del título
+    ws['!rows'] = wsData.map((row, idx) => {
+        if (idx === 0) return { hpt: 30 };
+        return {};
+    });
+
+    /* ---------------------------------------------------------------------
+     * Guardar archivo
+     * -------------------------------------------------------------------*/
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Simulación');
+
+    const fileName = `Simulacion_${(simulationData.location || 'SinUbicacion').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+};

@@ -75,7 +75,7 @@ const mainGridStyles = {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gridTemplateRows: "auto auto 1fr",
-    gap: "20px",
+    gap: "10px",
     overflow: "hidden"
 };
 
