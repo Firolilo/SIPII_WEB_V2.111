@@ -13,6 +13,7 @@
     "chart.js": "^4.4.9",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "leaflet": "^1.9.4",
     "pdfmake": "^0.2.12",
@@ -24,7 +25,8 @@
     "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
     "styled-components": "^6.1.18",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",

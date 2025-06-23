@@ -14,6 +14,7 @@ import RangeInput from "../components/RangeInput";
 import { colors, sizes } from "../styles/theme";
 import {gql, useMutation, useQuery} from "@apollo/client";
 import { generarInformePDF } from "../components/generarInformePDF";
+import { downloadSimulationAsExcel } from "../components/generarExcel";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 const UPDATE_NAME = gql`
@@ -1065,35 +1066,49 @@ const Simulacion = () => {
                             justifyContent: 'center',
                             marginTop: '1.5rem'
                         }}>
+                            {user?.role === 'admin' && (
+                                <Button
+                                    onClick={handleSave}
+                                    style={{ margin: '0.25rem' }}
+                                >
+                                    Guardar
+                                </Button>
+                            )}
+                            <Button
+                                onClick={handleDownload}
+                                style={{ margin: '0.25rem' }}
+                            >
+                                Descargar
+                            </Button>
                             <Button
                                 onClick={() => {
-                                    handleRepeat();
-                                    setShowRepeatedEndModal(false);
+                                    const simData = buildSimulationData();
+                                    if (simData) generarInformePDF(simData);
                                 }}
-                                style={{
-                                    backgroundColor: '#4CAF50',
-                                    color: 'white',
-                                    padding: '10px 20px'
-                                }}
+                                style={{ margin: '0.25rem' }}
                             >
-                                🔄 Repetir
+                                PDF
                             </Button>
-
-                            <Button onClick={handleDownload}>⬇️ Descargar</Button>
-
+                            <Button
+                                onClick={() => {
+                                    const simData = buildSimulationData();
+                                    if (simData) {
+                                        downloadSimulationAsExcel(simData);
+                                    }
+                                }}
+                                style={{ margin: '0.25rem' }}
+                            >
+                                Excel
+                            </Button>
                             <Button
                                 variant="outline"
                                 onClick={() => {
-                                    setShowRepeatedEndModal(false);
-                                    clearFires();
+                                    handleRepeat();
+                                    setShowSaveModal(false);
                                 }}
-                                style={{
-                                    borderColor: colors.danger,
-                                    color: colors.danger,
-                                    padding: '10px 20px'
-                                }}
+                                style={{ margin: '0.25rem' }}
                             >
-                                🚪 Salir
+                                Repetir
                             </Button>
                         </div>
                     </div>
@@ -1170,7 +1185,18 @@ const Simulacion = () => {
                                     PDF
                                 </Button>
                                 <Button
-                                    variant="outline"
+                                    onClick={() => {
+                                        const simData = buildSimulationData();
+                                        if (simData) {
+                                            downloadSimulationAsExcel(simData);
+                                        }
+                                    }}
+                                    style={{ margin: '0.25rem' }}
+                                >
+                                    Excel
+                                </Button>
+                                <Button
+                                    variant="outline"   
                                     onClick={() => {
                                         handleRepeat();
                                         setShowSaveModal(false);

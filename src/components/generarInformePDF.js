@@ -7,7 +7,6 @@ const locationCache = {};
 const getLocationName = async (lat, lng) => {
     const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
 
-    // Usar caché si existe
     if (locationCache[cacheKey]) {
         return locationCache[cacheKey];
     }
@@ -17,28 +16,19 @@ const getLocationName = async (lat, lng) => {
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`
         );
 
+        console.log(response)
+
         if (!response.ok) throw new Error('Error en la respuesta de Nominatim');
 
         const data = await response.json();
 
-        // Extraer el nombre más significativo
-        let locationName = cacheKey; // Valor por defecto
+        let locationName = cacheKey;
 
         if (data.address) {
-            // Intentar obtener el nombre más específico posible
-            locationName = data.address.road ||
-                data.address.village ||
-                data.address.town ||
-                data.address.city ||
-                data.address.county ||
-                data.address.state ||
-                data.display_name.split(",")[0];
+            locationName = data.display_name;
 
-            // Acortar nombres muy largos
             if (locationName.length > 50) {
-                locationName = `${data.address.road ? data.address.road + ', ' : ''}${
-                    data.address.village || data.address.town || data.address.city
-                }`;
+                locationName = `${data.address.road ? data.address.road + ', ' : ''}${data.address.city || data.address.town || data.address.village}`;
             }
         }
 
@@ -305,7 +295,6 @@ export const generarInformePDF = async (simulationData) => {
         pageSize: 'A4'
     };
 
-    // Funciones auxiliares
     function getWindDirectionName(degrees) {
         const directions = ['Norte', 'Noreste', 'Este', 'Sureste', 'Sur', 'Suroeste', 'Oeste', 'Noroeste'];
         const index = Math.round((degrees % 360) / 45) % 8;
